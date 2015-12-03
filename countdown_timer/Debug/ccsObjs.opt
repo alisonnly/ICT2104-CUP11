@@ -1,0 +1,1 @@
+"./acceleration.obj" "./as.obj" "./bmp_as.obj" "./display.obj" "./main.obj" "./temperature.obj" "../lnk_cc430f6137.cmd" -l"libc.a" -l"libmath.a" 
