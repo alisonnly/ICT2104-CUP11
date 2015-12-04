@@ -1,7 +1,7 @@
 #include <msp430.h>
 #include <cc430F6137.h>
 
-
+//Define the different bits for different segments so that it can be used later
 #define SEG_A    BIT4
 #define SEG_B    BIT5
 #define SEG_C    BIT6
@@ -31,6 +31,8 @@ const unsigned char  LCD_Char_Map[] =
 	SEG_A + SEG_B + SEG_G + SEG_F + SEG_E				   // Display "P"
 };
 
+
+//Define functions
 void displayFunction();
 void displayTimer(thousands, hundreds, tens, ones);
 void clearScreen();
