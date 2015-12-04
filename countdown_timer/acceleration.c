@@ -43,34 +43,7 @@
  */
 
 #define BIT(x) (1uL << (x))					// uL: unsigned long
-//
-//// LCD Segments
-//#define LCD_A    BIT4
-//#define LCD_B    BIT5
-//#define LCD_C    BIT6
-//#define LCD_D    BIT7
-//#define LCD_F    BIT0
-//#define LCD_G    BIT1
-//#define LCD_E    BIT2
-//#define LCD_H    BIT3
-//
-//// LCD Segment Mapping
-//const unsigned char  LCD_Char_Map[] =
-//{
-//  LCD_A+LCD_B+LCD_C+LCD_D+LCD_E+LCD_F,        // '0' or 'O'
-//  LCD_B+LCD_C,                                // '1' or 'I'
-//  LCD_A+LCD_B+LCD_D+LCD_E+LCD_G,              // '2' or 'Z'
-//  LCD_A+LCD_B+LCD_C+LCD_D+LCD_G,              // '3'
-//  LCD_B+LCD_C+LCD_F+LCD_G,                    // '4' or 'y'
-//  LCD_A+LCD_C+LCD_D+LCD_F+LCD_G,              // '5' or 'S'
-//  LCD_A+LCD_C+LCD_D+LCD_E+LCD_F+LCD_G,        // '6' or 'b'
-//  LCD_A+LCD_B+LCD_C,                          // '7'
-//  LCD_A+LCD_B+LCD_C+LCD_D+LCD_E+LCD_F+LCD_G,  // '8' or 'B'
-//  LCD_A+LCD_B+LCD_C+LCD_D+LCD_F+LCD_G,        // '9' or 'g'
-//  LCD_B+LCD_C+LCD_E+LCD_F+LCD_G,              // Displays "X"
-//  LCD_B+LCD_C+LCD_D+LCD_F+LCD_G,              // Displays "Y"
-//  LCD_G										// Displays "-"
-//};
+
 // *************************************************************************************************
 // Include section
 
@@ -80,8 +53,6 @@
 
 // logic
 #include "acceleration.h"
-//#include "simpliciti.h"
-//#include "user.h"
 
 // *************************************************************************************************
 // Global Variable section
@@ -101,12 +72,6 @@ struct accel sAccel;
 // *************************************************************************************************
 void reset_acceleration(void)
 {
-    // Start with Y-axis display
-    sAccel.view_style = DISPLAY_ACCEL_Y;
-
-    // Clear timeout counter
-    sAccel.timeout = 0;
-
     // Default mode is off
     sAccel.mode = ACCEL_MODE_OFF;
 
@@ -119,6 +84,7 @@ void reset_acceleration(void)
 // @param       unsigned char value        2's complement number
 // @return      unsigned char                      1 = number is positive, 0 = number is negative
 // *************************************************************************************************
+//to check whether the value is positive or negative
 unsigned char acceleration_value_is_positive(unsigned char value)
 {
     return ((value & BIT7) == 0);
@@ -142,22 +108,11 @@ unsigned short convert_acceleration_value_to_mgrav(unsigned char value)
         value += 1;
     }
 
-    result = 0;
-    for (i = 0; i < 7; i++)
-		result += ((value & (BIT(i))) >> i) * bmp_mgrav_per_bit[i];
+    result = 0;					// initialize the value of result to 0
+    for (i = 0; i < 7; i++)		// sum all the result value gathering from the acceleration reading in bmp_as.c & as.c
+		result += ((value & (BIT(i))) >> i) * bmp_mgrav_per_bit[i]; // multiply by the value in bmp_mgrav_per_bit that is predefined for each bit
 
     return (result);
-}
-
-// *************************************************************************************************
-// @fn          is_acceleration_measurement
-// @brief       Returns 1 if acceleration is currently measured.
-// @param       none
-// @return      unsigned char              1 = acceleration measurement ongoing
-// *************************************************************************************************
-unsigned char is_acceleration_measurement(void)
-{
-    return ((sAccel.mode == ACCEL_MODE_ON) && (sAccel.timeout > 0));
 }
 
 // *************************************************************************************************
@@ -168,21 +123,19 @@ unsigned char is_acceleration_measurement(void)
 // *************************************************************************************************
 void do_acceleration_measurement(void)
 {
-//  	__bis_SR_register(LPM3_bits + GIE);					// in low power mode 3 that allows interrupt
-
     // Get data from sensor
     bmp_as_get_data(sAccel.xyz);
 
 }
 
 // *************************************************************************************************
-// @fn          display_acceleration
+// @fn          start_acceleration
 // @brief       Display routine.
 // @param       unsigned char line                 LINE1
 //                              unsigned char update               DISPLAY_LINE_UPDATE_FULL, DISPLAY_LINE_CLEAR
 // @return      none
 // *************************************************************************************************
-void display_acceleration()
+void start_acceleration()
 {
     unsigned char raw_data;
     unsigned short accel_data;
@@ -196,7 +149,7 @@ void display_acceleration()
     {
 
         // Start acceleration sensor
-        if (!is_acceleration_measurement())
+        if (sAccel.mode != ACCEL_MODE_ON)			// if sAccel.mode is in ACCEL_MODE_OFF
         {
             // Clear previous acceleration value
             sAccel.data = 0;
@@ -204,35 +157,24 @@ void display_acceleration()
             // Start sensor
             bmp_as_start();
 
-            // Set timeout counter
-            sAccel.timeout = ACCEL_MEASUREMENT_TIMEOUT;
-
             // Set mode
-            sAccel.mode = ACCEL_MODE_ON;
-
-            // Start with Y-axis values
-            sAccel.view_style = DISPLAY_ACCEL_Y;
+			sAccel.mode = ACCEL_MODE_ON;
         }
-
-                // Display decimal point
-//                display_symbol(LCD_SEG_L1_DP1, SEG_ON);
-        __no_operation();
 
         raw_data = sAccel.xyz[0];               // raw_data is the x value in sAccel.xyz array
 
         accel_data = convert_acceleration_value_to_mgrav(raw_data) / 10;
 
-        //?? why filter?
         // Filter acceleration
         accel_data = (unsigned short) ((accel_data * 0.2) + (sAccel.data * 0.8));
 
         // Store average acceleration
         sAccel.data = accel_data;
 
-        if (sAccel.data > 70) {
-            if (acceleration_value_is_positive(raw_data))
-            {
-                __delay_cycles(50000);			// Delay for ~1-2 sec to prevent repetitive counting
+		// take in the value from bmp_as.c and as.c			-- added by ZL
+		// if the user tilts the watch in upright-downwards position (sensor pointing downwards to ground - positive)
+        if (acceleration_value_is_positive(raw_data)){
+			if (sAccel.data > 70) {					// if the data reading is more than 70, increment the count
                 sAccel.count = sAccel.count + 1;
             }
         }
@@ -240,20 +182,7 @@ void display_acceleration()
 }
 
 
-void accelFunc() {
+void accelFunc() { // added by ZL - to call two other functions that are required for acceleration measurement
 	do_acceleration_measurement();
-	display_acceleration();
+	start_acceleration();
 }
-////
-//void onAccel() {
-//	if (sAccel.state == 1) {
-//		accelFunc();
-//	}
-//	sAccel.state = 0;
-//}
-//
-//void offAccel() {
-//	if (sAccel.state == 0) {
-//		sAccel.count = 0;
-//	}
-//}

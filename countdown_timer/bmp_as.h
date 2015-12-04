@@ -63,12 +63,8 @@ extern void bmp_as_get_data(unsigned char * data);
 ********************************************************************/
 
 #define BMP_CHIPID           (0x00)
-#define BMP_ACC_X_LSB        (0x02)
-#define BMP_ACC_X_MSB        (0x03)
 #define BMP_ACC_Y_LSB        (0x04)
 #define BMP_ACC_Y_MSB        (0x05)
-#define BMP_ACC_Z_LSB        (0x06)
-#define BMP_ACC_Z_MSB        (0x07)
 
 #define BMP_GRANGE           (0x0F)	   // g Range
 #define BMP_BWD              (0x10)	   // Bandwidth

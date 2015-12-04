@@ -39,13 +39,8 @@
 // *************************************************************************************************
 // Include section
 
-// system
-//#include "project.h"
-
 // driver
 #include "as.h"
-//#include "timer.h"
-
 
 // *************************************************************************************************
 // Prototypes section
@@ -69,6 +64,7 @@ unsigned char as_ok;
 // @param       none
 // @return      none
 // *************************************************************************************************
+// used in main.c for initializing acceleration sensor at the beginning
 void as_init(void)
 {
     // Deactivate connection to acceleration sensor
@@ -82,7 +78,7 @@ void as_init(void)
     AS_PWR_DIR |= AS_PWR_PIN;          // Power pin to output direction
 
     // Reset global sensor flag
-    as_ok = 1;
+    as_ok = 1;							// don't start measuring acceleration yet
 }
 
 // *************************************************************************************************
@@ -104,9 +100,8 @@ void as_start(void)
     AS_CSN_OUT |= AS_CSN_PIN;                    // Deselect acceleration sensor
     AS_PWR_OUT |= AS_PWR_PIN;                    // Power on active high
 
-    // Delay of >5ms required between switching on power and configuring sensor
+    // Delay of >5ms (~1s) required between switching on power and configuring sensor
     __delay_cycles(0xFFFF);
-//    Timer0_A4_Delay(CONV_MS_TO_TICKS(10));
 
     // Initialize interrupt pin for data read out from acceleration sensor
     AS_INT_IFG &= ~AS_INT_PIN;                   // Reset flag
@@ -119,6 +114,7 @@ void as_start(void)
 // @param       none
 // @return      none
 // *************************************************************************************************
+// stop measuring the acceleration value
 void as_stop(void)
 {
     // Disable interrupt

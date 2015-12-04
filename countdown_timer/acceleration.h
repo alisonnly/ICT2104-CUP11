@@ -49,8 +49,6 @@
 #define ACCEL_MODE_OFF          (0u)
 #define ACCEL_MODE_ON           (1u)
 
-// Stop acceleration measurement after 60 minutes to save battery
-#define ACCEL_MEASUREMENT_TIMEOUT               (1 * 10u)
 // *************************************************************************************************
 // Global Variable section
 struct accel
@@ -58,27 +56,19 @@ struct accel
     unsigned char mode;                    // ACC_MODE_OFF, ACC_MODE_ON
     unsigned char xyz[3];                  // Sensor raw data, use value xyz[0] - x value
     unsigned short data;                   // Acceleration data in 10 * mgrav
-    unsigned char view_style;              // Display Y value
-    unsigned short timeout;                // Timeout
 
     // added part
     unsigned short count;
-    unsigned short state;
 };
 struct accel sAccel;
 
 // *************************************************************************************************
 // Extern section
 void reset_acceleration(void);
-void sx_acceleration();
-void display_acceleration();
-unsigned char is_acceleration_measurement(void);
+void start_acceleration();
 void do_acceleration_measurement(void);
 
-// added functions
+// added function - Zhen Ling
 void accelFunc();
-void onAccel();
-void offAccel();
-
 
 #endif                          /*ACCELERATION_H_ */
