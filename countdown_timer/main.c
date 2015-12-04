@@ -62,9 +62,9 @@ __interrupt void TIMER0_A0_ISR(void)
 
 	}//flag end
 
-	else if (interruptFlag == 2){
-			accCount();
-		}
+	else if (interruptFlag == 2){			// initial interruptFlag is 2, hence start the acceleration measurement
+			accCount();						// calls two functions for the measurement of acceleration
+	}
 
 }
 
@@ -99,14 +99,13 @@ void buzzerstop() {
 
 void accCount(){
 
-	accelFunc();
-	if(sAccel.count >= 10){
-		__delay_cycles(40000);
-		interruptFlag = 1;
-
-		sAccel.count = 0;
-		m=10;
-		timercountdown();
+	accelFunc();						// to start acceleration that calls two functions: do_acceleration_measurement and start_acceleration
+	if(sAccel.count >= 5){				// only start the timer when user shakes his hand 5 times and above
+		interruptFlag = 1;				// change flag value to 1 to start measuring temperature
+		sAccel.count = 0;				// reset the count value to 0
+		m=10;							// reset the m to 10
+		// the watch can be wake up again by shaking after resetting the count and m values
+		timercountdown();				// goes back to timer interrupt routine
 	}
 
 }
@@ -116,15 +115,17 @@ int main(void){
 	WDTCTL = WDTPW | WDTHOLD;	// Stop watchdog timer
 	displayFunction();
 
-	    //this part of code says I want to do interrupt in port 2
-	        P2IES |= BIT0 + BIT2 ;  //p2.0 and p2.2 hi/lo edge
-	        P2IFG &= ~BIT0 & ~BIT2 ; //p2.0 and p2.2 IFG cleared
-	        P2IE |= BIT0 + BIT2; //p2.0 and p2.2 interrupt enabled
-	        as_init();
-	        reset_acceleration();
-	      //  __bis_SR_register(GIE);
-	       // welcomeScreen();
-	       // __delay_cycles(10000);
+	//this part of code says I want to do interrupt in port 2
+	P2IES |= BIT0 + BIT2 ;  //p2.0 and p2.2 hi/lo edge
+	P2IFG &= ~BIT0 & ~BIT2 ; //p2.0 and p2.2 IFG cleared
+	P2IE |= BIT0 + BIT2; //p2.0 and p2.2 interrupt enabled
+	
+	// Init acceleration sensor
+	as_init();
+
+	// Reset acceleration measurement
+	reset_acceleration();
+
 	timercountdown();
 
 }

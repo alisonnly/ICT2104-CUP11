@@ -40,18 +40,9 @@
 // *************************************************************************************************
 // Include section
 
-// system
-//#include "project.h"
-
-// logic
-//#include "simpliciti.h"
-
 // driver
 #include "bmp_as.h"
 #include "as.h"
-//#include "timer.h"
-//#include "display.h"
-
 
 // *************************************************************************************************
 // Prototypes section
@@ -77,6 +68,7 @@
 // Bandwidth for filtered acceleration data in Hz (Sampling rate is twice the bandwidth)
 // Valid bandwidths are: 8, 16, 31, 63, 125, 250, 500, 1000
 #define BMP_AS_BANDWIDTH   (63u)
+// using orientation mode - tilting the watch module
 
 // Sleep phase duration in ms
 // Valid sleep phase durations are: 1, 2, 4, 6, 10, 25, 50
@@ -132,7 +124,7 @@ void bmp_as_start(void)
 	bBwd = 0x09;
 #elif (BMP_AS_BANDWIDTH == 31)
 	bBwd = 0x0A;
-#elif (BMP_AS_BANDWIDTH == 63)
+#elif (BMP_AS_BANDWIDTH == 63)			// this bandwidth is used
 	bBwd = 0x0B;
 #elif (BMP_AS_BANDWIDTH == 125)
 	bBwd = 0x0C;
@@ -190,6 +182,7 @@ void bmp_as_start(void)
 // @param       none
 // @return      none
 // *************************************************************************************************
+// stops doing acceleration
 void bmp_as_stop(void)
 {
 	as_stop();
@@ -236,13 +229,10 @@ void bmp_as_get_data(unsigned char * data)
 	if ((AS_PWR_OUT & AS_PWR_PIN) != AS_PWR_PIN) return;
   
   	// Dummy read LSB from LSB acceleration data to update MSB (BMA250 datasheet 4.4.1)
-  	//*(data+1) = bmp_as_read_register(BMP_ACC_X_LSB);
+	// only use in the x-value of the orientation
 	*(data+0) = bmp_as_read_register(BMP_ACC_Y_LSB);
-	//*(data+2) = bmp_as_read_register(BMP_ACC_Z_LSB);
   	// Store X/Y/Z MSB acceleration data in buffer
-	//*(data+1) = bmp_as_read_register(BMP_ACC_X_MSB);
 	*(data+0) = bmp_as_read_register(BMP_ACC_Y_MSB);
-	//*(data+2) = bmp_as_read_register(BMP_ACC_Z_MSB);
 }
 
 
