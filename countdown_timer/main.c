@@ -97,7 +97,7 @@ __interrupt void TIMER0_A0_ISR(void)
 	if(interruptFlag == 1){  //when the interrupt flag is 1 it will do temperature and timer countdown
 		temperatureFunction(flag);
 		displaySuitText(flag);
-		if (temperatureDegC > 25){
+		if (temperatureDegC > 29){
 			flag = 1;
 
 			if( m > 0){             // timer is still counting down
